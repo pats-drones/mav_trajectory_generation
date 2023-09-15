@@ -1,0 +1,4 @@
+[submodule "mav_comm"]
+	path = mav_comm
+	url = git@github.com:nikhil-sethi/mav_comm.git
+	branch = rosless

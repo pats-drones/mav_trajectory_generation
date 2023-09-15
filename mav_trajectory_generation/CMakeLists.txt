@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mav_trajectory_generation)
 
-find_package(catkin_simple REQUIRED)
-catkin_simple(ALL_DEPS_REQUIRED)
-
 set(CMAKE_MACOSX_RPATH 0)
 add_definitions(-std=c++11)
 
 # Link against system catkin yaml-cpp if installed.
 find_package(PkgConfig)
 find_package(yaml_cpp_catkin QUIET)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(glog REQUIRED)
 if(${yaml_cpp_catkin_FOUND})
     message(STATUS "Found yaml_cpp_catkin, using instead of system library.")
     set(YamlCpp_LIBRARIES ${yaml_cpp_catkin_LIBRARIES})
@@ -22,7 +21,7 @@ endif()
 #############
 # LIBRARIES #
 #############
-cs_add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
   src/motion_defines.cpp
   src/polynomial.cpp
   src/segment.cpp
@@ -36,29 +35,29 @@ cs_add_library(${PROJECT_NAME}
 # Link against yaml-cpp.
 target_link_libraries(${PROJECT_NAME} ${YamlCpp_LIBRARIES})
 
+target_include_directories(${PROJECT_NAME} PUBLIC include 
+                                                  /usr/include/eigen3 
+                                                  ../mav_comm/mav_msgs/include/
+                                                  ../eigen_checks/include)
+
 ############
 # BINARIES #
 ############
-cs_add_executable(polynomial_timing_evaluation
+add_executable(polynomial_timing_evaluation
   src/polynomial_timing_evaluation.cpp
 )
-target_link_libraries(polynomial_timing_evaluation ${PROJECT_NAME})
+target_link_libraries(polynomial_timing_evaluation ${PROJECT_NAME} glog)
 
 #########
 # TESTS #
 #########
-catkin_add_gtest(test_polynomial
-  test/test_polynomial.cpp
+add_executable(test
+  test/test.cpp
 )
-target_link_libraries(test_polynomial ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(test ${PROJECT_NAME} glog)
 
-catkin_add_gtest(test_polynomial_optimization
-  test/test_polynomial_optimization.cpp
-)
-target_link_libraries(test_polynomial_optimization ${PROJECT_NAME} ${catkin_LIBRARIES})
+# add_executable(test_polynomial_optimization
+#   test/test_polynomial_optimization.cpp
+# )
+# target_link_libraries(test_polynomial_optimization ${PROJECT_NAME} glog)
 
-##########
-# EXPORT #
-##########
-cs_install()
-cs_export()
